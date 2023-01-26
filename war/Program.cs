@@ -16,77 +16,126 @@ namespace war
 
 class Battlefield
 {
-    private List<Soldier> _platoonCountry1 = new List<Soldier>();
-    private List<Soldier> _platoonCountry2 = new List<Soldier>();
+    private Platoon _platoonCountry1;
+    private Platoon _platoonCountry2;
 
     public Battlefield()
     {
-        _platoonCountry1.Add(new Stormtrooper());
-        _platoonCountry1.Add(new Juggernaut());
-        _platoonCountry1.Add(new Sniper());
-
-        _platoonCountry2.Add(new Marine());
-        _platoonCountry2.Add(new Gunner());
-        _platoonCountry2.Add(new SoldierOfFortuna());
+        _platoonCountry1 = new Platoon(new Stormtrooper(), new Juggernaut(), new Sniper());
+        _platoonCountry2 = new Platoon(new Marine(), new Gunner(), new SoldierOfFortuna());
     }
 
     public void StartBattle()
     {
         Console.WriteLine("Битва начинается!");
 
-        while (_platoonCountry1.Count > 0 && _platoonCountry2.Count > 0)
+        while (_platoonCountry1.IsAlive && _platoonCountry2.IsAlive)
         {
             Console.WriteLine("Атакуют солдаты страны 1:");
 
-            MakeAttaсkPlatoon(_platoonCountry1, _platoonCountry2);
+            _platoonCountry1.Attack(_platoonCountry2);
 
-            if (_platoonCountry2.Count == 0)
+            if (_platoonCountry2.IsAlive == false)
                 continue;
 
             Console.WriteLine("Атакуют солдаты страны 2:");
 
-            MakeAttaсkPlatoon(_platoonCountry2, _platoonCountry1);
+            _platoonCountry2.Attack(_platoonCountry1);
         }
 
         ShowWinner();
         Console.ReadLine();
     }
 
-    private void MakeAttaсkPlatoon(List<Soldier> attackingPlatoon, List<Soldier> defendingPlatoon)
-    {
-        for (int i = 0; i < attackingPlatoon.Count; i++)
-        {
-            for (int j = 0; j < defendingPlatoon.Count; j++)
-            {
-                if (defendingPlatoon[j].GetAliveStatus())
-                    attackingPlatoon[i].Attaсk(defendingPlatoon[j]);
-            }
-        }
-
-        RemoveDeadSoldiers(defendingPlatoon);
-    }
-
-    private void RemoveDeadSoldiers(List<Soldier> soldiers)
-    {
-        for (int i = 0; i < soldiers.Count; i++)
-        {
-            if (soldiers[i].GetAliveStatus() == false)
-            {
-                soldiers.RemoveAt(i);
-                i--;
-            }
-        }
-    }
-
     private void ShowWinner()
     {
-        if (_platoonCountry2.Count == 0)
+        if (_platoonCountry1.IsAlive)
         {
             Console.WriteLine("Победила страна 1!");
         }
         else
         {
             Console.WriteLine("Победила страна 2!");
+        }
+    }
+}
+
+class Platoon
+{
+    private Soldier _soldier1;
+    private Soldier _soldier2;
+    private Soldier _soldier3;
+
+    public bool IsAlive { get; private set; }
+
+    public Platoon(Soldier soldier1, Soldier soldier2, Soldier soldier3)
+    {
+        _soldier1 = soldier1;
+        _soldier2 = soldier2;
+        _soldier3 = soldier3;
+        IsAlive = true;
+    }
+
+    public void Attack(Platoon platoon)
+    {
+        platoon.TakeDamage(_soldier1,_soldier2, _soldier3);
+    }
+
+    private void TakeDamage(Soldier soldier1, Soldier soldier2, Soldier soldier3)
+    {
+        if (soldier1.IsAlive)
+        {
+            if (_soldier1.IsAlive)
+            {
+                soldier1.Attaсk(_soldier1);
+            }
+            else
+            {
+                soldier1.Attaсk(GetALiveSoldier());
+            }
+        }
+
+        if (soldier2.IsAlive)
+        {
+            if (_soldier2.IsAlive)
+            {
+                soldier2.Attaсk(_soldier2);
+            }
+            else
+            {
+                soldier2.Attaсk(GetALiveSoldier());
+            }
+        }
+
+        if (soldier3.IsAlive)
+        {
+            if (_soldier3.IsAlive)
+            {
+                soldier3.Attaсk(_soldier3);
+            }
+            else
+            {
+                soldier3.Attaсk(GetALiveSoldier());
+            }
+        }
+
+        if (_soldier1.IsAlive == false && _soldier2.IsAlive == false && _soldier3.IsAlive == false)
+            IsAlive = false;
+    }
+
+    private Soldier GetALiveSoldier()
+    {
+        if (_soldier1.IsAlive)
+        {
+            return _soldier1;
+        }
+        else if (_soldier2.IsAlive)
+        {
+            return _soldier2;
+        }
+        else
+        {
+            return _soldier3;
         }
     }
 }
@@ -101,14 +150,15 @@ abstract class Soldier
     protected int MaximumHealth;
     protected int Health;
     protected int Armor;
-    protected int Damage;
 
     protected int HitChance;
     protected int ChanceAbilityTrigger;
     protected int MaximumRandomChance = 100;
 
-    protected bool IsAlive = true;
     protected bool IsAbilityApplied = false;
+
+    public bool IsAlive { get; protected set; }
+    public int Damage { get; protected set; }
 
     public virtual void Attaсk(Soldier solder)
     {
@@ -152,11 +202,6 @@ abstract class Soldier
         }
     }
 
-    public bool GetAliveStatus()
-    {
-        return IsAlive;
-    }
-
     protected virtual void EnableAbility()
     {
         IsAbilityApplied = true;
@@ -193,6 +238,8 @@ class Stormtrooper : Soldier
 
         ChanceAbilityTrigger = 15;
         HitChance = 50;
+
+        IsAlive = true;
     }
 
     public override void Attaсk(Soldier solder)
@@ -200,9 +247,10 @@ class Stormtrooper : Soldier
         if (IsAbilityTrigger())
             EnableAbility();
 
+        Console.WriteLine($"{Name} стреляет.");
+
         if (IsHit())
         {
-            Console.WriteLine($"{Name} стреляет.");
 
             if (IsAbilityApplied)
             {
@@ -240,14 +288,16 @@ class Juggernaut : Soldier
 
         ChanceAbilityTrigger = 20;
         HitChance = 35;
+
+        IsAlive = true;
     }
 
     public override void Attaсk(Soldier solder)
     {
+        Console.WriteLine($"{Name} стреляет.");
+
         if (IsHit())
         {
-            Console.WriteLine($"{Name} стреляет.");
-
             solder.TakeDamage(Damage);
         }
         else
@@ -291,6 +341,8 @@ class Sniper : Soldier
 
         ChanceAbilityTrigger = 30;
         HitChance = 75;
+
+        IsAlive = true;
     }
 
     protected override void DisableAbility()
@@ -327,6 +379,8 @@ class Marine : Soldier
 
         ChanceAbilityTrigger = 30;
         HitChance = 50;
+
+        IsAlive = true;
     }
 
     protected override void EnableAbility()
@@ -360,6 +414,8 @@ class Gunner : Soldier
 
         ChanceAbilityTrigger = 25;
         HitChance = 75;
+
+        IsAlive = true;
     }
 
     public override void Attaсk(Soldier solder)
@@ -370,11 +426,10 @@ class Gunner : Soldier
                 EnableAbility();
         }
 
+        Console.WriteLine($"{Name} стреляет.");
 
         for (int i = 0; i < _numberOfShotsPerTurn; i++)
         {
-            Console.WriteLine($"{Name} стреляет.");
-
             if (IsHit())
             {
                 solder.TakeDamage(Damage);
@@ -424,6 +479,8 @@ class SoldierOfFortuna : Soldier
 
         ChanceAbilityTrigger = 70;
         HitChance = 40;
+
+        IsAlive = true;
     }
 
     public override void Attaсk(Soldier solder)
