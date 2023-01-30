@@ -16,31 +16,31 @@ namespace war
 
 class Battlefield
 {
-    private Platoon _platoonCountry1;
-    private Platoon _platoonCountry2;
+    private Platoon _country1;
+    private Platoon _country2;
 
     public Battlefield()
     {
-        _platoonCountry1 = new Platoon(new Stormtrooper(), new Juggernaut(), new Sniper());
-        _platoonCountry2 = new Platoon(new Marine(), new Gunner(), new SoldierOfFortuna());
+        _country1 = new Platoon(new Stormtrooper(), new Juggernaut(), new Sniper());
+        _country2 = new Platoon(new Marine(), new Gunner(), new SoldierOfFortuna());
     }
 
     public void StartBattle()
     {
         Console.WriteLine("Битва начинается!");
 
-        while (_platoonCountry1.IsAlive && _platoonCountry2.IsAlive)
+        while (_country1.IsAlive && _country2.IsAlive)
         {
             Console.WriteLine("Атакуют солдаты страны 1:");
 
-            _platoonCountry1.Attack(_platoonCountry2);
+            _country1.Attack(_country2);
 
-            if (_platoonCountry2.IsAlive == false)
+            if (_country2.IsAlive == false)
                 continue;
 
             Console.WriteLine("Атакуют солдаты страны 2:");
 
-            _platoonCountry2.Attack(_platoonCountry1);
+            _country2.Attack(_country1);
         }
 
         ShowWinner();
@@ -49,7 +49,7 @@ class Battlefield
 
     private void ShowWinner()
     {
-        if (_platoonCountry1.IsAlive)
+        if (_country1.IsAlive)
         {
             Console.WriteLine("Победила страна 1!");
         }
@@ -62,81 +62,59 @@ class Battlefield
 
 class Platoon
 {
-    private Soldier _soldier1;
-    private Soldier _soldier2;
-    private Soldier _soldier3;
+    private List<Soldier> _soldiers = new List<Soldier>();
 
     public bool IsAlive { get; private set; }
 
     public Platoon(Soldier soldier1, Soldier soldier2, Soldier soldier3)
     {
-        _soldier1 = soldier1;
-        _soldier2 = soldier2;
-        _soldier3 = soldier3;
+        _soldiers.Add(soldier1);
+        _soldiers.Add(soldier2);
+        _soldiers.Add(soldier3);
+
         IsAlive = true;
     }
 
     public void Attack(Platoon platoon)
     {
-        platoon.TakeDamage(_soldier1,_soldier2, _soldier3);
+        var enemySoldiers = platoon.GetSoldiers();
+
+        for (int i = 0; i < _soldiers.Count; i++)
+        {
+            for (int j = 0; j < enemySoldiers.Count; j++)
+            {
+                if (enemySoldiers[j].IsAlive == false) continue;
+
+                _soldiers[i].Attaсk(enemySoldiers[j]);
+            }
+        }
+
+        platoon.RemoveDeadSoldiers();
     }
 
-    private void TakeDamage(Soldier soldier1, Soldier soldier2, Soldier soldier3)
+    private List<Soldier> GetSoldiers()
     {
-        if (soldier1.IsAlive)
-        {
-            if (_soldier1.IsAlive)
-            {
-                soldier1.Attaсk(_soldier1);
-            }
-            else
-            {
-                soldier1.Attaсk(GetALiveSoldier());
-            }
-        }
-
-        if (soldier2.IsAlive)
-        {
-            if (_soldier2.IsAlive)
-            {
-                soldier2.Attaсk(_soldier2);
-            }
-            else
-            {
-                soldier2.Attaсk(GetALiveSoldier());
-            }
-        }
-
-        if (soldier3.IsAlive)
-        {
-            if (_soldier3.IsAlive)
-            {
-                soldier3.Attaсk(_soldier3);
-            }
-            else
-            {
-                soldier3.Attaсk(GetALiveSoldier());
-            }
-        }
-
-        if (_soldier1.IsAlive == false && _soldier2.IsAlive == false && _soldier3.IsAlive == false)
-            IsAlive = false;
+        return _soldiers;
     }
 
-    private Soldier GetALiveSoldier()
+    private void Die()
     {
-        if (_soldier1.IsAlive)
+        IsAlive = false;
+    }
+
+    private void RemoveDeadSoldiers()
+    {
+        for (int i = 0; i < _soldiers.Count; i++)
         {
-            return _soldier1;
+            if (_soldiers[i].IsAlive == false)
+            {
+                _soldiers.RemoveAt(i);
+                i--;
+            }
         }
-        else if (_soldier2.IsAlive)
-        {
-            return _soldier2;
-        }
-        else
-        {
-            return _soldier3;
-        }
+
+        if (_soldiers.Count == 0)
+            Die();
     }
 }
 
@@ -183,8 +161,10 @@ abstract class Soldier
     public virtual void TakeDamage(int damage)
     {
         int currentDamage;
+        int alphaArmor = 100;
+        int alphaDamage = 100;
 
-        currentDamage = damage * (100 - Armor) / 100;
+        currentDamage = damage * (alphaArmor - Armor) / alphaDamage;
         Health -= currentDamage;
 
         IsAlive = Health > 0;
