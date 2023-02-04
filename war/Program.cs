@@ -64,8 +64,6 @@ class Platoon
 {
     private List<Soldier> _soldiers = new List<Soldier>();
 
-    public bool IsAlive { get; private set; }
-
     public Platoon(Soldier soldier1, Soldier soldier2, Soldier soldier3)
     {
         _soldiers.Add(soldier1);
@@ -75,26 +73,36 @@ class Platoon
         IsAlive = true;
     }
 
+    public bool IsAlive { get; private set; }
+
     public void Attack(Platoon platoon)
     {
-        var enemySoldiers = platoon.GetSoldiers();
+        int enemySoldiersCount = platoon.GetSoldierCount();
 
         for (int i = 0; i < _soldiers.Count; i++)
         {
-            for (int j = 0; j < enemySoldiers.Count; j++)
+            for (int j = 0; j < enemySoldiersCount; j++)
             {
-                if (enemySoldiers[j].IsAlive == false) continue;
+                Soldier enemySoldier = platoon.GetSoldier(j);
 
-                _soldiers[i].Attaсk(enemySoldiers[j]);
+                if (enemySoldier.IsAlive == false)
+                    continue;
+
+                _soldiers[i].Attaсk(enemySoldier);
             }
         }
 
         platoon.RemoveDeadSoldiers();
     }
 
-    private List<Soldier> GetSoldiers()
+    private Soldier GetSoldier(int indexSoldier)
     {
-        return _soldiers;
+        return _soldiers[indexSoldier];
+    }
+
+    private int GetSoldierCount()
+    {
+        return _soldiers.Count;
     }
 
     private void Die()
@@ -224,6 +232,8 @@ class Stormtrooper : Soldier
 
     public override void Attaсk(Soldier solder)
     {
+        int shotsCount = 3;
+
         if (IsAbilityTrigger())
             EnableAbility();
 
@@ -234,9 +244,10 @@ class Stormtrooper : Soldier
 
             if (IsAbilityApplied)
             {
-                solder.TakeDamage(Damage);
-                solder.TakeDamage(Damage);
-                solder.TakeDamage(Damage);
+                for (int i = 0; i < shotsCount; i++)
+                {
+                    solder.TakeDamage(Damage);
+                }
             }
             else
             {
