@@ -8,7 +8,6 @@ namespace war
         static void Main(string[] args)
         {
             Battlefield battlefield = new Battlefield();
-
             battlefield.StartBattle();
         }
     }
@@ -32,14 +31,12 @@ class Battlefield
         while (_country1.IsAlive && _country2.IsAlive)
         {
             Console.WriteLine("Атакуют солдаты страны 1:");
-
             _country1.Attack(_country2);
 
             if (_country2.IsAlive == false)
                 continue;
 
             Console.WriteLine("Атакуют солдаты страны 2:");
-
             _country2.Attack(_country1);
         }
 
@@ -85,10 +82,8 @@ class Platoon
             {
                 Soldier enemySoldier = platoon.GetSoldier(j);
 
-                if (enemySoldier.IsAlive == false)
-                    continue;
-
-                _soldiers[i].Attaсk(enemySoldier);
+                if (enemySoldier.IsAlive)
+                    _soldiers[i].Attaсk(enemySoldier);
             }
         }
 
@@ -241,7 +236,6 @@ class Stormtrooper : Soldier
 
         if (IsHit())
         {
-
             if (IsAbilityApplied)
             {
                 for (int i = 0; i < shotsCount; i++)
@@ -496,7 +490,6 @@ class SoldierOfFortuna : Soldier
         if (IsAbilityApplied)
         {
             Console.WriteLine($"{Name}: Сработала {Ability}, урон не получен.");
-
             DisableAbility();
         }
         else
