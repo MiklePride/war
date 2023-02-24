@@ -8,7 +8,7 @@ namespace war
         static void Main(string[] args)
         {
             Battlefield battlefield = new Battlefield();
-            battlefield.StartBattle();
+            battlefield.InitiateBattle();
         }
     }
 }
@@ -24,7 +24,7 @@ class Battlefield
         _country2 = new Platoon(new Marine(), new Gunner(), new SoldierOfFortuna());
     }
 
-    public void StartBattle()
+    public void InitiateBattle()
     {
         Console.WriteLine("Битва начинается!");
 
